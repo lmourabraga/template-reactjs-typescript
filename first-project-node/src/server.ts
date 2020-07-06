@@ -1,13 +1,14 @@
 import express from 'express';
+import routes from './routes';
 
 const app = express();
 
-app.get('/', (request, response) => {
-    return response.json({ message: 'Hello GoStack' })
-});
+app.use(express.json());
+
+app.use(routes);
 
 app.listen(3333, () => {
-    console.log('server started on port 3333');
+    console.log('Server started on port 3333');
 });
 
 /**
@@ -29,4 +30,6 @@ app.listen(3333, () => {
   projeto irá carregar muito mais rápido.
   O --ignore-watch node_modules vai fazer com que ts-node-dev tente compilar os códigos da pasta
   node_modules ou fiquei observando alterações nesse diretório.
- */
+  O --inspect possibilitará que o vscode se conecte com o código node em ambiente de desenvolvimento
+
+  */
