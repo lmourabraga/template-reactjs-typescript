@@ -1,30 +1,38 @@
 import { Router } from 'express';
-import { startOfHour, parseISO, isEqual } from 'date-fns'; // Lib para formatar datas e horas
-import Appointment from '../models/Appointment';
+import { parseISO } from 'date-fns'; // Lib para formatar datas e horas
+import AppointmentsRepository from '../repositories/AppointmentsRepository';
+import CreateAppointmentService from '../services/CreateAppointmentService';
 
 const appointmentsRouter = Router();
+const appointmentsRepository = new AppointmentsRepository();
 
-const appointments: Appointment[] = [];
+appointmentsRouter.get('/', (request, response) => {
+    const appointments = appointmentsRepository.all();
+    return response.json(appointments);
+});
 
 appointmentsRouter.post('/', (request, response) => {
-    const { provider, date } = request.body;
+    try {
+        const { provider, date } = request.body;
 
-    const parsedDate = startOfHour(parseISO(date));
-    const findAppointmentInSameDate = appointments.find(appointment =>
-        isEqual(parsedDate, appointment.date),
-    );
+        const parsedDate = parseISO(date);
 
-    if (findAppointmentInSameDate) {
-        return response
-            .status(400)
-            .json({ message: 'This appointment is already booked.' });
+        const createAppointment = new CreateAppointmentService(
+            appointmentsRepository,
+        );
+
+        const appointment = createAppointment.execute({
+            date: parsedDate,
+            provider,
+        });
+
+        return response.json(appointment);
+    } catch (error) {
+        return response.status(400).json({ error: error.message });
     }
-
-    const appointment = new Appointment(provider, parsedDate);
-
-    appointments.push(appointment);
-
-    return response.json(appointment);
 });
 
 export default appointmentsRouter;
+
+// SoC: Separation of Concerns (Separação de preocupações);
+// DTO: Data transfer object: Quando você transfere dados de um arquivo para o outro.
